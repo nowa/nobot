@@ -151,7 +151,11 @@ module Jabber
           is_master = master? sender
           
           # 退出处理
-          Logger.p "command matching..."
+          if message.strip == 'exit!' && is_master
+            @body.say(sender, 'Exiting...')
+            @body.net.wakeup
+            return
+          end
 
           @commands[:spec].each do |command|
             # if command[:is_public] or is_master
@@ -237,6 +241,10 @@ module Jabber
           @client.close
         end
       end
+      
+      def wakeup
+        @listen_thread.wakeup
+      end
     
       # Deliver a message to the specified recipient(s). Accepts a single
       # recipient or an Array of recipients.
@@ -282,6 +290,8 @@ module Jabber
     end
   
     class Bot
+      attr_reader :net
+      
       def initialize(config)
         @config = config || {}
         if @config[:name].nil? or @config[:name].length == 0
