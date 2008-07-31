@@ -1,6 +1,6 @@
 #!/usr/bin/ruby
 
-require 'nobot'
+require 'lib/nobot'
 
 nowa = Jabber::Nobot::Bot.new({
   :name      => 'nowa.robot',
@@ -11,5 +11,11 @@ nowa = Jabber::Nobot::Bot.new({
   :priority  => 5,
   :status    => 'nowa是我的主人'
 })
+
+nowa.preset_command({
+  :syntax      => 'curl <string>',
+  :description => 'sniffer a server',
+  :regex       => /^curl\s+.+$/,
+}) { |sender, message| `curl -I #{message}` }
 
 nowa.connect
