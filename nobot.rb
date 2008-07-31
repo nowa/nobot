@@ -1,5 +1,6 @@
 require 'rubygems'
 require 'xmpp4r'
+require 'xmpp4r/roster'
 
 module Jabber
 
@@ -97,6 +98,16 @@ module Jabber
 
             parse_thread.join
           end
+        end
+        
+        @client.add_presence_callback do |pres|
+          Logger.p "#{pres.from.to_s.sub(/\/.+$/, '')} changed presence: #{pres.show.to_s == '' ? 'online' : pres.show.to_s}, #{pres.status}"
+        end
+        
+        roster = Roster::Helper.new(@client)
+        roster.add_subscription_request_callback do |item, pres|
+          roster.accept_subscription(pres.from)
+          Logger.p "Subscription from #{pres.from} accepted."
         end
         Thread.stop
       end
