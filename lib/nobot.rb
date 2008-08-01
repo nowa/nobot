@@ -110,7 +110,7 @@ module Jabber
         # Returns the default help message describing the bot's command repertoire.
         # Commands are sorted alphabetically by name, and are displayed according
         # to the bot's and the commands's _public_ attribute.
-        def help_message(sender, command_name) #:nodoc:
+        def help_message(body, sender, command_name) #:nodoc:
           if command_name.nil? or command_name.length == 0
             # Display help for all commands
             help_message = "我可以执行以下预设命令:\n\n"
@@ -169,7 +169,7 @@ module Jabber
                   params = message.sub(/^\S+\s+(.*)$/, '\1')
                 end
 
-                response = command[:callback].call(sender, params)
+                response = command[:callback].call(@body, sender, params)
                 @body.say(sender, response) unless response.nil?
 
                 return
@@ -198,7 +198,7 @@ module Jabber
           :description => '返回指定命令的帮助信息或所有可用命令列表',
           :regex => /^help(\s+?.+?)?$/,
           :alias => [ :syntax => '? [<command>]', :regex  => /^\?(\s+?.+?)?$/ ]
-        ) { |sender, message| help_message(sender, message) }
+        ) { |body, sender, message| help_message(body, sender, message) }
       end
     
       def dispatch
@@ -294,6 +294,7 @@ module Jabber
   
     class Bot
       attr_reader :net
+      attr_reader :config
       
       def initialize(config)
         @config = config || {}
@@ -329,6 +330,7 @@ module Jabber
       
       def say(to, msg)
         @net.deliver(to, msg)
+        return nil
       end
       
       def preset_command(command, &callback)

@@ -14,8 +14,17 @@ nowa = Jabber::Nobot::Bot.new({
 
 nowa.preset_command({
   :syntax      => 'curl <url>',
-  :description => 'sniffer a server',
+  :description => '获取指定url的http头',
   :regex       => /^curl\s+.+$/,
-}) { |sender, message| `curl -I #{message}` }
+}) { |body, sender, message| `curl -I #{message}` }
+
+nowa.preset_command({
+  :syntax      => 'cstatus <string>',
+  :description => '更改机器人的签名',
+  :regex       => /^cstatus\s+.+$/,
+}) { |body, sender, message| 
+  body.status = message
+  body.say(body.config[:master], "#{sender}把我的签名改成了：#{message}")
+}
 
 nowa.connect
