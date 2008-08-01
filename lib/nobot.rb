@@ -286,9 +286,13 @@ module Jabber
         
         roster = Roster::Helper.new(@client)
         roster.add_subscription_request_callback do |item, pres|
-          roster.accept_subscription(pres.from)
-          deliver(@config[:master], "#{pres.from} 加我为好友了")
-          Logger.p "Subscription from #{pres.from} accepted."
+          begin
+            roster.accept_subscription(pres.from)
+            deliver(@config[:master], "#{pres.from} 加我为好友了")
+            Logger.p "Subscription from #{pres.from} accepted."
+          rescue Exception => e
+            deliver(@config[:master], "接受好友添加（来自：#{pres.from}）请求时产生一个异常：#{e}")
+          end
         end
         Thread.stop
       end
