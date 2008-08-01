@@ -1,13 +1,14 @@
 require 'rubygems'
 require 'xmpp4r'
 require 'xmpp4r/roster'
+require "rexml/document"
 
 module Jabber
 
   module Nobot
   
     class Logger
-      @@debug = false
+      @@debug = true
       
       def Logger.p(log)
         puts log if @@debug
@@ -286,6 +287,7 @@ module Jabber
         roster = Roster::Helper.new(@client)
         roster.add_subscription_request_callback do |item, pres|
           roster.accept_subscription(pres.from)
+          deliver(@config[:master], "#{pres.from} 加我为好友了")
           Logger.p "Subscription from #{pres.from} accepted."
         end
         Thread.stop
@@ -314,17 +316,18 @@ module Jabber
           :password => @config[:password],
           :presence => @config[:presence],
           :priority => @config[:priority],
-          :status => @config[:status]
+          :status => @config[:status],
+          :master => @config[:master]
         })
         @net.brain = @brain
         @brain.body = self
       end
     
-      def connect
+      def born
         @net.connect
       end
     
-      def disconnect
+      def sleep
         @net.disconnect
       end
       
