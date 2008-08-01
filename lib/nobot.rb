@@ -7,8 +7,10 @@ module Jabber
   module Nobot
   
     class Logger
+      @@debug = false
+      
       def Logger.p(log)
-        puts log
+        puts log if @@debug
       end
     end
     
@@ -117,9 +119,10 @@ module Jabber
               # Thank you, Hash.sort
               command = command[1]
 
-              if !command[:is_alias] and (master? sender)
-                command[:syntax].each { |syntax| help_message += "#{syntax}\n" }
-                help_message += "  #{command[:description]}\n\n"
+              if !command[:is_alias]
+                # command[:syntax].each { |syntax| help_message += "#{syntax}\t" }
+                help_message += command[:syntax].join("\n")
+                help_message += "\t #{command[:description]}\n"
               end
             end
           else
@@ -192,7 +195,7 @@ module Jabber
         @commands = { :spec => [], :meta => {} }
         add_command(
           :syntax      => 'help [<command>]',
-          :description => '返回指定命令的帮助信息，如果不指定命令则返回所有可用命令列表',
+          :description => '返回指定命令的帮助信息或所有可用命令列表',
           :regex => /^help(\s+?.+?)?$/,
           :alias => [ :syntax => '? [<command>]', :regex  => /^\?(\s+?.+?)?$/ ]
         ) { |sender, message| help_message(sender, message) }

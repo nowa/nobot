@@ -13,7 +13,7 @@ nowa = Jabber::Nobot::Bot.new({
 })
 
 nowa.preset_command({
-  :syntax      => 'curl <string>',
+  :syntax      => 'curl <url>',
   :description => 'sniffer a server',
   :regex       => /^curl\s+.+$/,
 }) { |sender, message| `curl -I #{message}` }
