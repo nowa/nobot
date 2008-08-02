@@ -36,6 +36,7 @@ module Jabber
           @body.contacts.remove(pres.from.to_s.sub(/\/.+$/, ''))
         else
           @body.contacts.add(pres)
+          when_saw(pres)
         end
       end
 

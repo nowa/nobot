@@ -173,7 +173,7 @@ nowa.preset_command({
 }) { |body, sender, message|
   begin
     lists = body.contacts.all().values.map {|c| c.gid}
-    body.say(lists, "广播：#{message}")
+    body.say(lists, "广播(#{sender.sub(/\@.+$/, '')})：#{message}")
     nil
   rescue Exception => e
     body.report("#{sender} 广播时发生异常 ：\n#{message}\n\n #{e}")

@@ -13,6 +13,7 @@ module Jabber
         return if pres.nil?
         item = Contact.new(pres.from.to_s.sub(/\/.+$/, ''), pres)
         if @list[item.gid]
+          @list[item.gid].new_online = false
           @list[item.gid].status = item.status unless item.status.nil?
           @list[item.gid].show = item.show unless item.show.nil?
         else
@@ -28,6 +29,10 @@ module Jabber
       def all
         return @list
       end
+      
+      def new_online?(gid=nil)
+        return @list[gid].new_online
+      end
     end
     
     class Contact
@@ -37,6 +42,7 @@ module Jabber
       attr_reader :presence
       attr_reader :name
       attr_accessor :nickname
+      attr_accessor :new_online
       
       def initialize(jabber_id=nil, pres=nil)
         @gid = jabber_id
@@ -45,6 +51,7 @@ module Jabber
         @show = pres.show
         @name = @gid.sub(/\@.+$/, '')
         @nickname = @gid.sub(/\@.+$/, '')
+        @new_online = true
       end
       
       def status=(status)
@@ -53,7 +60,6 @@ module Jabber
       
       def show=(show)
         @show = show
-        
       end
     end
     
