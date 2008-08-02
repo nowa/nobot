@@ -3,6 +3,8 @@ require 'xmpp4r'
 require 'xmpp4r/roster'
 require "rexml/document"
 
+Jabber::debug = false
+
 module Jabber
 
   module Nobot
@@ -43,7 +45,7 @@ module Jabber
       #     nil
       #   end
       def add_command(command, &callback)
-        name = command_name(command[:syntax])
+        name = command[:command]
         
         # Add the command meta - used in the 'help' command response.
         add_command_meta(name, command)
@@ -83,7 +85,7 @@ module Jabber
           original_command = @commands[:meta][command_name]
           original_command[:syntax] << alias_command[:syntax]
 
-          alias_name = command_name(alias_command[:syntax])
+          alias_name = alias_command[:command]
 
           add_command_meta(alias_name, original_command, true)
           add_command_spec(alias_command, callback)
@@ -195,10 +197,11 @@ module Jabber
       
         @commands = { :spec => [], :meta => {} }
         add_command(
+          :command     => 'help',
           :syntax      => 'help [<command>]',
           :description => '返回指定命令的帮助信息或所有可用命令列表',
           :regex => /^help(\s+?.+?)?$/,
-          :alias => [ :syntax => '? [<command>]', :regex  => /^\?(\s+?.+?)?$/ ]
+          :alias => [ {:command => '?', :syntax => '? [<command>]', :regex  => /^\?(\s+?.+?)?$/}, {:command => '？', :syntax => '？ [<command>]', :regex  => /^？(\s+?.+?)?$/} ]
         ) { |body, sender, message| help_message(body, sender, message) }
       end
     
@@ -221,14 +224,17 @@ module Jabber
       attr_reader :client
       attr_reader :listen_thread
       attr_accessor :brain
+      attr_accessor :need_reconnect
     
       def initialize(config)
         @config = config || {}
         @listen_thread = Thread.current
         @connected = false
+        @need_reconnect = false
       end
     
       def connect
+        Logger.p "connecting..."
         jid = JID.new(@config[:jabber_id])
         @client = Client.new(jid)
         @client.connect
@@ -243,10 +249,12 @@ module Jabber
       def disconnect
         if @connected
           @client.close
+          @connected = false
         end
       end
       
       def wakeup
+        Logger.p "wakeuping..."
         @listen_thread.wakeup
       end
     
@@ -281,7 +289,7 @@ module Jabber
         end
         
         @client.add_presence_callback do |pres|
-          Logger.p "#{pres.from.to_s.sub(/\/.+$/, '')} changed presence: #{pres.show}, #{pres.status}"
+          Logger.p "#{pres.from.to_s.sub(/\/.+$/, '')} changed presence: #{pres.show.to_s.inspect}, #{pres.status.to_s}"
         end
         
         roster = Roster::Helper.new(@client)
@@ -294,13 +302,36 @@ module Jabber
             deliver(@config[:master], "接受好友添加（来自：#{pres.from}）请求时产生一个异常：#{e}")
           end
         end
+        
         Thread.stop
+        if @need_reconnect
+          disconnect
+          sleep(1)
+          connect
+        end
+      end
+    end
+    
+    module DictSpec
+      def add_dict_spec(word=nil, mean=nil, sender=nil)
+        return unless word or mean
+        return [false, "你不是主人，不能覆盖已经存在的词条！"] if @dict_spec["dict_spec"]["#{word}"] and !@config[:master].include?(sender)
+        @dict_spec["dict_spec"]["#{word}"] = mean
+        dump_dict_spec
+        return [true, "添加成功"]
+      end
+      
+      def dump_dict_spec(to='config/dict_spec.yml')
+        File.open(to, "w") { |f| YAML.dump(@dict_spec, f)}
       end
     end
   
     class Bot
+      include DictSpec
+      
       attr_reader :net
       attr_reader :config
+      attr_reader :dict_spec
       
       def initialize(config)
         @config = config || {}
@@ -325,6 +356,8 @@ module Jabber
         })
         @net.brain = @brain
         @brain.body = self
+        
+        @dict_spec = YAML::load( File.open('config/dict_spec.yml') )
       end
     
       def born
@@ -335,9 +368,18 @@ module Jabber
         @net.disconnect
       end
       
+      def reborn
+        @net.need_reconnect = true
+        @net.wakeup
+      end
+      
       def say(to, msg)
         @net.deliver(to, msg)
         return nil
+      end
+      
+      def report(msg)
+        @net.deliver(@config[:master], msg)
       end
       
       def preset_command(command, &callback)
