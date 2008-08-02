@@ -1,15 +1,12 @@
 #!/usr/bin/ruby
 
 require 'lib/nobot'
-require 'cgi'
-require 'iconv'
-require 'yaml'
 
 nowa = Jabber::Nobot::Bot.new({
   :name      => 'nowa.robot',
   :jabber_id => 'nowa.robot@gmail.com/Nobot.v0.1',
   :password  => 'nfish677266',
-  :master    => ['nowazhu@gmail.com'],
+  :master    => ['nowazhu@gmail.com', 'halflifexp@gmail.com'],
   :presence  => :chat,
   :priority  => 5,
   :status    => 'nowa是我的主人'
@@ -109,14 +106,18 @@ nowa.preset_command({
   :command      => 'reborn',
   :syntax       => 'reborn [seconds]',
   :description  => '重启机器人，管理员专用。可以指定延迟秒数',
-  :regex        => /^reborn(\s+?[0-9]+?)?$/
+  :regex        => /^reborn(\s+?[0-9\-]+?)?$/
 }) { |body, sender, message|
   begin
-    delay = (message.length == 0 or message.nil?) ? 3 : message.to_i
-    body.say(body.config[:master], "#{sender} 即将于#{delay}秒后重启偶！")
-    sleep(delay)
-    body.reborn if body.config[:master].include?(sender)
-    nil
+    delay = message.nil? ? 3 : (message.length == 0 ? 3 : message.to_i.abs)
+    if body.config[:master].include?(sender)
+      body.say(body.config[:master], "#{sender} 即将于#{delay}秒后重启偶！")
+      sleep(delay)
+      body.reborn
+      nil
+    else
+      "你不是管理员，不能重启偶"
+    end
   rescue Exception => e
     body.report("#{sender} 重启机器人时发生异常 ：\n #{e}")
     "重启时发生异常，偶要报告向主人报告下"
