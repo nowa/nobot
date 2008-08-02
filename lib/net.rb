@@ -27,7 +27,7 @@ module Jabber
         presence(@config[:presence], @config[:status], @config[:priority])
         Logger.p "Nobot(#{@config[:jabber_id]}) connected."
         @need_reconnect = !@need_reconnect
-
+        
         start_listener
       end
 
@@ -41,6 +41,10 @@ module Jabber
       def wakeup
         Logger.p "wakeuping..."
         @listen_thread.wakeup
+      end
+      
+      def send_roser_query
+        @client.send(Iq.new_browseget)
       end
 
       # Deliver a message to the specified recipient(s). Accepts a single
@@ -60,6 +64,14 @@ module Jabber
       end
 
       def start_listener
+        @client.add_iq_callback { |i|
+          if i.type == :get && !i.from.nil?
+            pres = Presence.new
+            pres.from = i.from
+            @brain.saw(pres)
+          end
+        }
+        
         @client.add_message_callback do |m|
           # Remove the Jabber resourse, if any
           sender = m.from.to_s.sub(/\/.+$/, '')
@@ -74,7 +86,12 @@ module Jabber
         end
 
         @client.add_presence_callback do |pres|
-          Logger.p "#{pres.from.to_s.sub(/\/.+$/, '')} changed presence: #{pres.show.to_s.inspect}, #{pres.status.to_s}"
+          begin
+            Logger.p "#{pres.from.to_s.sub(/\/.+$/, '')} changed presence: #{pres.show.to_s.inspect}, #{pres.status.to_s}"
+            @brain.saw(pres)
+          rescue Exception => e
+            Logger.p "error: \n#{e}"
+          end
         end
 
         roster = Roster::Helper.new(@client)
@@ -90,7 +107,7 @@ module Jabber
             wakeup
           end
         end
-
+        
         Thread.stop
         if @need_reconnect
           disconnect

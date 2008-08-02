@@ -1,4 +1,5 @@
 require 'lib/command'
+require 'lib/propriety'
 
 # 机器人的大脑
 module Jabber
@@ -7,6 +8,8 @@ module Jabber
 
     class Brain
       include Command
+      include BuiltInCommand
+      include Propriety
       attr_accessor :body
   
       def initialize(config)
@@ -26,6 +29,14 @@ module Jabber
 
       def dispatch
         parse_command(@sender, @received)
+      end
+      
+      def saw(pres)
+        if pres.type == :unavailable
+          @body.contacts.remove(pres.from.to_s.sub(/\/.+$/, ''))
+        else
+          @body.contacts.add(pres)
+        end
       end
 
       def hear(msg, from)

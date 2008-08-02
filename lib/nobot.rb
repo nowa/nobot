@@ -22,6 +22,7 @@ module Jabber
     
     require 'lib/brain'
     require 'lib/net'
+    require 'lib/contact'
     
     module DictSpec
       def add_dict_spec(word=nil, mean=nil, sender=nil)
@@ -43,6 +44,7 @@ module Jabber
       attr_reader :net
       attr_reader :config
       attr_reader :dict_spec
+      attr_reader :contacts
       
       def initialize(config)
         @config = config || {}
@@ -54,6 +56,7 @@ module Jabber
           @config[:master] = [@config[:master]]
         end
       
+        @contacts = Contacts.new
         @brain = Brain.new({
           :master => @config[:master]
         })

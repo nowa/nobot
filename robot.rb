@@ -141,4 +141,44 @@ nowa.preset_command({
   end
 }
 
+nowa.preset_command({
+  :command      => 'who',
+  :syntax       => 'who',
+  :description  => '偶的在线好友列表',
+  :regex        => /^who\s?$/
+}) { |body, sender, message|
+  body.net.send_roser_query
+  sleep(1)
+  online = ""
+  begin
+    lists = body.contacts.all().values
+    online += "--- 有#{lists.size}人在线：\n\n"
+    c = 1
+    lists.each { |item|
+      online += c.to_s + ". " + item.nickname + (item.presence.show.nil? ? "" : (" - " + item.presence.show.to_s)) + (item.status.nil? ? "" : (" - " + item.status)) + "\n"
+      c += 1
+    }
+  rescue Exception => e
+    body.report("#{sender} 查看在线好友时发生异常 ：\n #{e}")
+    online = "生成在线好友列表时有一个错误产生，我要向我的主人报告下"
+  end
+  online
+}
+
+nowa.preset_command({
+  :command      => 'broadcast',
+  :syntax       => 'broadcast <words>',
+  :description  => '给所有在线好友放小广播',
+  :regex        => /^broadcast\s+.+$/
+}) { |body, sender, message|
+  begin
+    lists = body.contacts.all().values.map {|c| c.gid}
+    body.say(lists, "广播：#{message}")
+    nil
+  rescue Exception => e
+    body.report("#{sender} 广播时发生异常 ：\n#{message}\n\n #{e}")
+    online = "广播时有一个错误产生，我要向我的主人报告下"
+  end
+}
+
 nowa.born
