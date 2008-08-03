@@ -87,6 +87,31 @@ module Jabber
         @net.wakeup
       end
       
+      def load_config
+        conf = YAML::load(File.open('config/robot.yml'))
+        if conf["robot"]["status"]
+          @config[:status] = conf["robot"]["status"]
+          self.status = conf["robot"]["status"]
+        end
+        
+        if conf["robot"]["presence"]
+          @config[:presence] = conf["robot"]["presence"]
+          self.presence = conf["robot"]["presence"]
+        end
+        
+        if conf["robot"]["master"]
+          @config[:master] = conf["robot"]["master"].split(',')
+        end
+        
+        if conf["robot"]["name"]
+          @config[:name] = conf["robot"]["name"]
+        end
+      end
+      
+      def dump_config(to='config/robot.yml')
+        File.open(to, "w") { |f| YAML.dump(@config, f)}
+      end
+      
       def say(to, msg)
         @net.deliver(to, msg)
         return nil

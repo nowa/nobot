@@ -144,11 +144,16 @@ module Jabber
         # bot master(s) will be silently ignored.
         def parse_command(sender, message) #:nodoc:
           is_master = master? sender
+          contact = @body.contacts.detect(sender)
 
           # 退出处理
           if message.strip == 'exit!' && is_master
             @body.say(sender, 'Exiting...')
             @body.net.wakeup
+            return
+          elsif message.strip == 'quitz' && !contact.nil?
+            contact.quit_z_mode
+            @body.say(sender, "你退出了z模式啦！")
             return
           end
 
@@ -170,6 +175,28 @@ module Jabber
           end
           
           cmd_name = command_name(message)
+          
+          unless contact.nil?
+            if cmd_name == 'z' and message.strip =~ /^z\s+.+[\s\n]*$/i
+              target = message.sub(/^z\s+(.+)[\s\n]*$/i, '\1')
+              contact.enter_z_mode(target)
+              @body.say(sender, "哇咔咔，你现在进入了z模式，现在你所说的话都将会被转告给#{target.sub(/\@.+$/, '')}。发送quitz给我可以退出z模式。")
+              return
+            end
+            
+            if contact.mode_z[0] and !contact.mode_z[1][:target].nil?
+              @body.say(contact.mode_z[1][:target], sender.sub(/\@.+$/, '') + "让我转告你：\n" + message)
+              @body.contacts.set_last_zer(contact.mode_z[1][:target], sender)
+              return
+            end
+            
+            unless contact.last_zer.nil?
+              @body.say(contact.last_zer, sender.sub(/\@.+$/, '') + "让我转告你：\n" + message)
+              contact.last_zer = nil
+              return
+            end
+          end
+          
           if @commands[:meta][cmd_name]
             begin
               @body.say(sender, "那个，你给我的指令格式貌似不对，正确的好像是这样的：\n\n" + @commands[:meta][cmd_name][:syntax].first + "\n" + @commands[:meta][cmd_name][:description])

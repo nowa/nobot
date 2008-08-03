@@ -33,6 +33,7 @@ nowa.preset_command({
   :regex       => /^cstatus\s+.+$/
 }) { |body, sender, message| 
   body.status = message
+  body.dump_config
   body.say(body.config[:master], "#{sender}把我的签名改成了：#{message}")
 }
 
@@ -134,6 +135,13 @@ nowa.preset_command({
   msg[0] = msg[0].include?('@') ? msg[0] : (msg[0].gsub(/\n/, '') + "@gmail.com")
   begin
     body.say(msg[0], "#{sender.sub(/\@.+$/, '')}让我转告你：\n#{msg[1]}")
+    body.contacts.set_last_zer(msg[0], sender)
+    puts "m-1: #{message[-1]}"
+    if message[-1] != 44
+      contact = body.contacts.detect(sender)
+      contact.enter_z_mode(msg[0]) unless contact.nil?
+      body.say(sender, "哇咔咔，你现在进入了z模式，现在你所说的话都将会被转告给#{msg[0].sub(/\@.+$/, '')}。发送quitz给我可以退出z模式。")
+    end
     nil
   rescue Exception => e
     body.report("#{sender} 转告时发生异常 ：\n #{e} \n\n#{message}")
@@ -151,7 +159,7 @@ nowa.preset_command({
   sleep(1)
   online = ""
   begin
-    lists = body.contacts.all().values
+    lists = body.contacts.all().sort.map {|c| c[1]}
     online += "--- 有#{lists.size}人在线：\n\n"
     c = 1
     lists.each { |item|

@@ -66,9 +66,13 @@ module Jabber
       def start_listener
         @client.add_iq_callback { |i|
           if i.type == :get && !i.from.nil?
-            pres = Presence.new
-            pres.from = i.from
-            @brain.saw(pres)
+            if i.from.to_s.sub(/\@.+$/, '') != @config[:jabber_id].sub(/\@.+$/, '')
+              pres = Presence.new
+              pres.from = i.from
+              pres.show = nil
+              pres.status = nil
+              @brain.saw(pres)
+            end
           end
         }
         

@@ -14,7 +14,7 @@ module Jabber
         elsif hour >= 6 and hour < 8
           hi = "早起的鸟儿有虫虫吃，早哈"
         elsif hour >= 8 and hour < 11
-          hi = "上来啦？今天有啥计划么？"
+          hi = "早上好哈～～～"
         elsif hour >= 11 and hour < 13
           hi = "一股饭菜的香味，你吃饭没？"
         elsif hour >= 13 and hour < 17
