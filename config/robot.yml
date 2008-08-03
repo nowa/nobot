@@ -1,5 +1,10 @@
-robot:
-  status: nowa是我的主人
-  name: nowa.robot
-  master: nowazhu@gmail.com,halflifexp@gmail.com
-  presence: chat
+--- 
+:priority: 5
+:jabber_id: nowa.robot@gmail.com/Nobot.v0.1
+:password: nfish677266
+:status: "nowa\xE6\x98\xAF\xE6\x88\x91\xE7\x9A\x84\xE4\xB8\xBB\xE4\xBA\xBA"
+:name: nowa.robot
+:master: 
+- nowazhu@gmail.com
+- halflifexp@gmail.com
+:presence: :chat

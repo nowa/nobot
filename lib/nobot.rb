@@ -72,6 +72,7 @@ module Jabber
         @brain.body = self
         
         @dict_spec = YAML::load( File.open('config/dict_spec.yml') )
+        load_config
       end
     
       def born
@@ -100,7 +101,7 @@ module Jabber
         end
         
         if conf["robot"]["master"]
-          @config[:master] = conf["robot"]["master"].split(',')
+          @config[:master] = conf["robot"]["master"].is_a?(Array) ? conf["robot"]["master"] : conf["robot"]["master"].split(',')
         end
         
         if conf["robot"]["name"]
