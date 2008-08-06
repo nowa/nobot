@@ -13,7 +13,7 @@ module Jabber
   module Nobot
   
     class Logger
-      @@debug = true
+      @@debug = false
       
       def Logger.p(log)
         puts log if @@debug
@@ -90,22 +90,22 @@ module Jabber
       
       def load_config
         conf = YAML::load(File.open('config/robot.yml'))
-        if conf["robot"]["status"]
-          @config[:status] = conf["robot"]["status"]
-          self.status = conf["robot"]["status"]
+        if conf[:status]
+          @config[:status] = conf[:status]
+          self.status = conf[:status]
         end
         
-        if conf["robot"]["presence"]
-          @config[:presence] = conf["robot"]["presence"]
-          self.presence = conf["robot"]["presence"]
+        if conf[:presence]
+          @config[:presence] = conf[:presence]
+          self.presence = conf[:presence]
         end
         
-        if conf["robot"]["master"]
-          @config[:master] = conf["robot"]["master"].is_a?(Array) ? conf["robot"]["master"] : conf["robot"]["master"].split(',')
+        if conf[:master]
+          @config[:master] = conf[:master].is_a?(Array) ? conf[:master] : conf[:master].split(',')
         end
         
-        if conf["robot"]["name"]
-          @config[:name] = conf["robot"]["name"]
+        if conf[:name]
+          @config[:name] = conf[:name]
         end
       end
       
