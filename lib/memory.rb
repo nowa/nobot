@@ -12,39 +12,43 @@ module Jabber
       
       def parse_path(path=nil)
         return @cells if path.nil?
-        node = @cells
         path = path.split('/')
+        it = ""
         path.each { |p|
           if p != ''
-            node[p] = {} if !node[p]
-            node = node[p]
+            it += "['#{p}']"
+            eval("@cells" + it + " = @cells" + it + " || {}")
           end
         }
-        return node;
+        return it
       end
       
       # path=root/path/to/do
       def new_cell(name=nil, value=nil, path=nil)
         return if name.nil?
-        node = parse_path(path)
-        node[name] = value
+        nodes = parse_path(path)
+        # node[name] = value
+        eval("@cells" + nodes + "['#{name}'] = " + (value.nil? ? 'nil' : value.inspect))
+        return eval("@cells" + nodes + "['#{name}']")
       end
       
       def del_cell(name=nil, path=nil)
         return if name.nil?
-        node = parse_path(path)
-        node.delete(name)
-        return node
+        nodes = parse_path(path)
+        # node.delete(name)
+        eval("@cells" + nodes + ".delete('" + name + "')")
       end
       
       def cell(name=nil, path=nil)
         return nil if name.nil?
-        node = parse_path(path)
-        return node[name] ? node[name] : new_cell(name, nil, path)
+        nodes = parse_path(path)
+        node = nil
+        eval("node = @cells" + nodes + "['#{name}']")
+        return node ? node : new_cell(name, nil, path)
       end
       
       def dump(to='config/mem.yml')
-        File.open(to, "w") { |f| YAML.dump(@config, f)}
+        File.open(to, "w") { |f| YAML.dump(@cells, f)}
       end
       
     end

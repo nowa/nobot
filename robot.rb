@@ -3,8 +3,8 @@
 require 'lib/nobot'
 
 nowa = Jabber::Nobot::Bot.new({
-  :name      => 'nowa.robot',
-  :jabber_id => 'nowa.robot@gmail.com/Nobot.v0.1',
+  :name      => 'nowa.fish',
+  :jabber_id => 'nowa.fish@gmail.com/Nobot.v0.1',
   :password  => 'nfish677266',
   :master    => ['nowazhu@gmail.com', 'halflifexp@gmail.com'],
   :presence  => :chat,
