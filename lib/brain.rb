@@ -1,5 +1,6 @@
 require 'lib/command'
 require 'lib/propriety'
+require 'lib/memory'
 
 # 机器人的大脑
 module Jabber
@@ -11,11 +12,13 @@ module Jabber
       include BuiltInCommand
       include Propriety
       attr_accessor :body
+      attr_reader :mem
   
       def initialize(config)
         @config = config || {}
         @received = 'born'
         @sender = @config[:master]
+        @mem = Memory.new(YAML::load( File.open('config/mem.yml') ))
   
         @commands = { :spec => [], :meta => {} }
         add_command(

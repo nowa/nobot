@@ -23,6 +23,7 @@ module Jabber
     require 'lib/brain'
     require 'lib/net'
     require 'lib/contact'
+    require 'lib/dump'
     
     module DictSpec
       def add_dict_spec(word=nil, mean=nil, sender=nil)
@@ -32,14 +33,11 @@ module Jabber
         dump_dict_spec
         return [true, "添加成功"]
       end
-      
-      def dump_dict_spec(to='config/dict_spec.yml')
-        File.open(to, "w") { |f| YAML.dump(@dict_spec, f)}
-      end
     end
   
     class Bot
       include DictSpec
+      include Dump
       
       attr_reader :net
       attr_reader :config
@@ -80,10 +78,12 @@ module Jabber
       end
     
       def sleep
+        dump
         @net.disconnect
       end
       
       def reborn
+        dump
         @net.need_reconnect = true
         @net.wakeup
       end
@@ -107,10 +107,6 @@ module Jabber
         if conf[:name]
           @config[:name] = conf[:name]
         end
-      end
-      
-      def dump_config(to='config/robot.yml')
-        File.open(to, "w") { |f| YAML.dump(@config, f)}
       end
       
       def say(to, msg)
@@ -138,6 +134,7 @@ module Jabber
       #   * :xa   : extended away
       #
       def presence=(presence)
+        @config[:presence] = presence
         @net.presence(presence, @config[:status], @config[:priority])
       end
     
@@ -151,6 +148,7 @@ module Jabber
       # here.' or 'Out to lunch.' If you need to set more than just the status
       # message, use presence() instead.
       def status=(status)
+        @config[:status] = status
         @net.presence(@config[:presence], status, @config[:priority])
       end
     end

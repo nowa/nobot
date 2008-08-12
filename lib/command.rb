@@ -145,6 +145,11 @@ module Jabber
         def parse_command(sender, message) #:nodoc:
           is_master = master? sender
           contact = @body.contacts.detect(sender)
+          
+          # 别名处理
+          if @mem.cells['commands']['alias'][sender][message]
+            message = @mem.cells['commands']['alias'][sender][message]
+          end
 
           # 退出处理
           if message.strip == 'exit!' && is_master

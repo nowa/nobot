@@ -177,7 +177,8 @@ nowa.preset_command({
   :command      => 'broadcast',
   :syntax       => 'broadcast <words>',
   :description  => '给所有在线好友放小广播',
-  :regex        => /^broadcast\s+.+$/
+  :regex        => /^broadcast\s+.+$/,
+  :alias => [ {:command => 'bc', :syntax => 'bc <words>', :regex  => /^bc\s+.+$/} ]
 }) { |body, sender, message|
   begin
     lists = body.contacts.all().values.map {|c| c.gid}
@@ -187,6 +188,64 @@ nowa.preset_command({
     body.report("#{sender} 广播时发生异常 ：\n#{message}\n\n #{e}")
     online = "广播时有一个错误产生，我要向我的主人报告下"
   end
+}
+
+nowa.preset_command({
+  :command      => 'alias',
+  :syntax       => 'alias <words = words>',
+  :description  => '给命令设置别名，你也可以创建一个快捷的回复。比如：alias o = bc 我知道了',
+  :regex        => /^alias\s+.+\=.+$/
+}) { |body, sender, message|
+  begin
+    key = message.sub(/^(\S+)\s?\=\s?.+$/, '\1')
+    value = message.sub(/^\S+\s?\=\s?(.+)$/, '\1')
+    body.@brain.mem.new_cell(key, value, 'commands/alias/' + sender)
+    body.@brain.mem.dump
+    "别名创建成功！\n#{key} => #{value}"
+  rescue Exception => e
+    body.report("#{sender} 创建alias时发生异常 ：\n#{message}\n\n #{e}")
+    '创建别名时有一个错误产生，我要向我主人报告下'
+  end
+}
+
+nowa.preset_command({
+  :command      => 'alias list',
+  :syntax       => 'alias list',
+  :description  => '列出你创建的所有别名',
+  :regex        => /^alias\s+list$/
+}) { |body, sender, message|
+  result = ''
+  begin
+    cell = body.@brain.mem.cell(sender, 'commands/alias')
+    result += "你共有#{cell.size}个别名：\n\n"
+    c = 1
+    cell.each { |key, value|
+      result += "#{c}. #{key} => #{value}"
+      c += 1
+    }
+  rescue Exception => e
+    body.report("#{sender} 查看别名列表时发生异常 ：\n #{e}")
+    result = "查看别名列表时有一个错误产生，我要向我的主人报告下"
+  end
+  result
+}
+
+nowa.preset_command({
+  :command      => 'alias del',
+  :syntax       => 'alias del <key>',
+  :description  => '删除指定的别名',
+  :regex        => /^alias\s+del\s+.+$/
+}) { |body, sender, message|
+  begin
+    key = message.sub(/^del\s+(\S+)/, '\1')
+    body.@brain.mem.del_cell(key, 'commands/alias/' + sender)
+    body.@brain.mem.dump
+    "别名 #{key} 已经删除"
+  rescue Exception => e
+    body.report("#{sender} 删除alias时发生异常 ：\n#{message}\n\n #{e}")
+    '删除别名时有一个错误产生，我要向我主人报告下'
+  end
+  
 }
 
 nowa.born
