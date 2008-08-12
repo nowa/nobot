@@ -7,7 +7,7 @@ module Jabber
       attr_reader :cells
       
       def initialize(mem=nil)
-        @cells = mem.nil? ? {} || mem
+        @cells = mem || {}
       end
       
       def parse_path(path=nil)

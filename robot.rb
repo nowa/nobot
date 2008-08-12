@@ -199,8 +199,8 @@ nowa.preset_command({
   begin
     key = message.sub(/^(\S+)\s?\=\s?.+$/, '\1')
     value = message.sub(/^\S+\s?\=\s?(.+)$/, '\1')
-    body.@brain.mem.new_cell(key, value, 'commands/alias/' + sender)
-    body.@brain.mem.dump
+    body.brain.mem.new_cell(key, value, 'commands/alias/' + sender)
+    body.brain.mem.dump
     "别名创建成功！\n#{key} => #{value}"
   rescue Exception => e
     body.report("#{sender} 创建alias时发生异常 ：\n#{message}\n\n #{e}")
@@ -216,13 +216,15 @@ nowa.preset_command({
 }) { |body, sender, message|
   result = ''
   begin
-    cell = body.@brain.mem.cell(sender, 'commands/alias')
-    result += "你共有#{cell.size}个别名：\n\n"
-    c = 1
-    cell.each { |key, value|
-      result += "#{c}. #{key} => #{value}"
-      c += 1
-    }
+    cell = body.brain.mem.cell(sender, 'commands/alias')
+    result += "你共有#{cell.nil? ? 0 : cell.size}个别名：\n\n"
+    unless cell.nil?
+      c = 1
+      cell.each { |key, value|
+        result += "#{c}. #{key} => #{value}"
+        c += 1
+      }
+    end
   rescue Exception => e
     body.report("#{sender} 查看别名列表时发生异常 ：\n #{e}")
     result = "查看别名列表时有一个错误产生，我要向我的主人报告下"
@@ -238,8 +240,8 @@ nowa.preset_command({
 }) { |body, sender, message|
   begin
     key = message.sub(/^del\s+(\S+)/, '\1')
-    body.@brain.mem.del_cell(key, 'commands/alias/' + sender)
-    body.@brain.mem.dump
+    body.brain.mem.del_cell(key, 'commands/alias/' + sender)
+    body.brain.mem.dump
     "别名 #{key} 已经删除"
   rescue Exception => e
     body.report("#{sender} 删除alias时发生异常 ：\n#{message}\n\n #{e}")

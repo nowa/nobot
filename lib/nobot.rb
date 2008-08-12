@@ -40,6 +40,7 @@ module Jabber
       include Dump
       
       attr_reader :net
+      attr_reader :brain
       attr_reader :config
       attr_reader :dict_spec
       attr_reader :contacts

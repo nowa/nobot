@@ -147,8 +147,12 @@ module Jabber
           contact = @body.contacts.detect(sender)
           
           # 别名处理
-          if @mem.cells['commands']['alias'][sender][message]
-            message = @mem.cells['commands']['alias'][sender][message]
+          begin
+            if @mem.cells['commands']['alias'][sender][message]
+              message = @mem.cells['commands']['alias'][sender][message]
+            end
+          rescue Exception => e
+            
           end
 
           # 退出处理
